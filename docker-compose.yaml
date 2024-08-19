@@ -1,0 +1,51 @@
+services:
+
+  postgres14:
+    container_name: postgres14
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: paul123
+      POSTGRES_DB: cuenta_bancaria
+    volumes:
+      - data-postgres-cb:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - cuenta-net
+
+  msvc-cliente:
+    container_name: msvc-cliente
+    build:
+      context: ./
+      dockerfile: ./msvc-cliente/Dockerfile
+    ports:
+      - "8081:8081"
+    networks:
+      - cuenta-net
+    depends_on:
+      - postgres14
+    restart: always
+
+  msvc-cuenta:
+    container_name: msvc-cuenta
+    build:
+      context: ./
+      dockerfile: msvc-cuenta/Dockerfile
+    ports:
+      - "8082:8082"
+    networks:
+      - cuenta-net
+    depends_on:
+      - postgres14
+      - msvc-cliente
+    restart: always
+
+# definir antes de usar arriba
+volumes:
+  data-postgres-cb:
+    name: data-postgres-cb
+
+networks:
+  cuenta-net:
+    name: cuenta-net
